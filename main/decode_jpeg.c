@@ -159,8 +159,10 @@ esp_err_t decode_image(pixel_jpeg ***pixels, char * file, uint16_t width, uint16
 	free(work);
 	fclose(jd.fp);
 	return ret;
-	err:
+
 	//Something went wrong! Exit cleanly, de-allocating everything we allocated.
+	err:
+	fclose(jd.fp);
 	if (*pixels != NULL) {
 		for (int i = 0; i < height; i++) {
 			free((*pixels)[i]);
