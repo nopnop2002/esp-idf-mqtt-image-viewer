@@ -47,14 +47,12 @@ Follow [here](https://github.com/nopnop2002/esp-idf-ili9340).
 ![config-tft](https://user-images.githubusercontent.com/6020549/118922908-c1e11d00-b975-11eb-89fc-e7c5a57ca88e.jpg)
 
 # How to use
-```
-mosquitto_pub -d -h  broker.emqx.io -t image/example -f esp32.jpeg
-
-mosquitto_pub -d -h  broker.emqx.io -t image/example -f esp_logo.png
-
-```
+`mosquitto_pub -d -h  broker.emqx.io -t image/example -f esp32.jpeg`
 
 ![M5Stack-JPEG](https://user-images.githubusercontent.com/6020549/78413968-e0426700-7654-11ea-9040-0fdfd0f2de2e.JPG)
+
+
+`mosquitto_pub -d -h  broker.emqx.io -t image/example -f esp_logo.png`
 
 ![M5Stack-PNG](https://user-images.githubusercontent.com/6020549/78613610-40c8e280-78a7-11ea-95b0-a89ce14dc196.JPG)
 
