@@ -5,6 +5,8 @@ Image viewer using mqtt.
 
 ![slide-0002](https://user-images.githubusercontent.com/6020549/118925000-e8548780-b978-11eb-9b49-7ae719138bd0.jpg)
 
+![slide-0003](https://user-images.githubusercontent.com/6020549/118927202-649c9a00-b97c-11eb-8a33-f54c230c0997.jpg)
+
 # Installation for ESP32
 
 ```
