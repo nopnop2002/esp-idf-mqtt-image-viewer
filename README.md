@@ -9,7 +9,7 @@ Image viewer using mqtt and SPI TFT.
 
 ![slide-0003](https://user-images.githubusercontent.com/6020549/118927202-649c9a00-b97c-11eb-8a33-f54c230c0997.jpg)
 
-# hardware requirements
+# Hardware requirements
 SPI TFT.   
 Supported TFTs:   
 https://github.com/nopnop2002/esp-idf-ili9340
