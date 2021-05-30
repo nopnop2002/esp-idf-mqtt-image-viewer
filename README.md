@@ -1,11 +1,16 @@
 # esp-idf-mqtt-image-viewer
-Image viewer using mqtt.
+Image viewer using mqtt and SPI TFT.
 
 ![slide-0001](https://user-images.githubusercontent.com/6020549/118924835-96abfd00-b978-11eb-8224-3331fab505dd.jpg)
 
 ![slide-0002](https://user-images.githubusercontent.com/6020549/118925000-e8548780-b978-11eb-9b49-7ae719138bd0.jpg)
 
 ![slide-0003](https://user-images.githubusercontent.com/6020549/118927202-649c9a00-b97c-11eb-8a33-f54c230c0997.jpg)
+
+# hardware requirements
+SPI TFT.   
+Supported TFTs:   
+https://github.com/nopnop2002/esp-idf-ili9340
 
 # Installation for ESP32
 
