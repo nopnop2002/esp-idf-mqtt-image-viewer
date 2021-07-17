@@ -2,8 +2,6 @@
 #include "decode_png.h"
 #include "pngle.h"
 #include "esp_log.h"
-#include "ili9340.h"
-
 
 void png_init(pngle_t *pngle, uint32_t w, uint32_t h)
 {
@@ -29,6 +27,7 @@ void png_init(pngle_t *pngle, uint32_t w, uint32_t h)
 		
 }
 
+#define rgb565(r, g, b) (((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3))
 
 void png_draw(pngle_t *pngle, uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint8_t rgba[4])
 {
@@ -52,7 +51,7 @@ void png_draw(pngle_t *pngle, uint32_t x, uint32_t y, uint32_t w, uint32_t h, ui
 		pngle->pixels[_y][_x].green = rgba[1];
 		pngle->pixels[_y][_x].blue = rgba[2];
 #endif
-		pngle->pixels[_y][_x] = rgb565_conv(rgba[0], rgba[1], rgba[2]);
+		pngle->pixels[_y][_x] = rgb565(rgba[0], rgba[1], rgba[2]);
 	}
 
 }

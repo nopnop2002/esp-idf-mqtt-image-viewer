@@ -39,7 +39,7 @@ TickType_t JPEGTest(TFT_t * dev, char * file, int width, int height) {
 	pixel_jpeg **pixels;
 	uint16_t imageWidth;
 	uint16_t imageHeight;
-	esp_err_t err = decode_image(&pixels, file, _width, _height, &imageWidth, &imageHeight);
+	esp_err_t err = decode_jpeg(&pixels, file, _width, _height, &imageWidth, &imageHeight);
 	if (err == ESP_OK) {
 		ESP_LOGI(__FUNCTION__, "imageWidth=%d imageHeight=%d", imageWidth, imageHeight);
 
@@ -85,7 +85,7 @@ TickType_t JPEGTest(TFT_t * dev, char * file, int width, int height) {
 		release_image(&pixels, _width, _height);
 		ESP_LOGD(__FUNCTION__, "Finish");
 	} else {
-		ESP_LOGE(__FUNCTION__, "decode_image err=%d imageWidth=%d imageHeight=%d", err, imageWidth, imageHeight);
+		ESP_LOGE(__FUNCTION__, "decode_jpeg err=%d imageWidth=%d imageHeight=%d", err, imageWidth, imageHeight);
 	}
 
 	endTick = xTaskGetTickCount();

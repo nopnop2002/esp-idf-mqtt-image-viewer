@@ -183,7 +183,7 @@ void mqtt_sub(void *pvParameters)
 				if (file == NULL) continue;
 				fwrite(mqttBuf.data, mqttBuf.data_len, 1, file);
 				size_t received_data_size = mqttBuf.current_data_offset + mqttBuf.data_len;
-				ESP_LOGI(TAG, "sequence=%d received_data_size=%d total_data_len=%d", mqttBuf.sequence, received_data_size, mqttBuf.total_data_len);
+				ESP_LOGD(TAG, "sequence=%d received_data_size=%d total_data_len=%d", mqttBuf.sequence, received_data_size, mqttBuf.total_data_len);
 				if (mqttBuf.current_data_offset + mqttBuf.data_len == mqttBuf.total_data_len) {
 					fclose(file);
 					ESP_LOGI(TAG, "file close");

@@ -2,8 +2,6 @@
 #include "decode_jpeg.h"
 #include "esp32/rom/tjpgd.h"
 #include "esp_log.h"
-#include "ili9340.h"
-
 
 //Data that is passed from the decoder function to the infunc/outfunc functions.
 typedef struct {
@@ -30,6 +28,8 @@ static UINT infunc(JDEC *decoder, BYTE *buf, UINT len) {
 	return rlen;
 }
 
+#define rgb565(r, g, b) (((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3))
+
 //Output function. Re-encodes the RGB888 data from the decoder as big-endian RGB565 and
 //stores it in the outData array of the JpegDev structure.
 static UINT outfunc(JDEC *decoder, void *bitmap, JRECT *rect) {
@@ -48,7 +48,7 @@ static UINT outfunc(JDEC *decoder, void *bitmap, JRECT *rect) {
 				jd->outData[y][x].green = in[1];
 				jd->outData[y][x].blue = in[2];
 #endif
-				jd->outData[y][x] = rgb565_conv(in[0], in[1], in[2]);
+				jd->outData[y][x] = rgb565(in[0], in[1], in[2]);
 			}
 
 			in += 3;
@@ -78,7 +78,7 @@ uint8_t getScale(uint16_t screenWidth, uint16_t screenHeight, uint16_t imageWidt
 #define WORKSZ 3100
 
 //Decode the embedded image into pixel lines that can be used with the rest of the logic.
-esp_err_t decode_image(pixel_jpeg ***pixels, char * file, uint16_t width, uint16_t height, uint16_t * imageWidth, uint16_t * imageHeight) {
+esp_err_t decode_jpeg(pixel_jpeg ***pixels, char * file, uint16_t width, uint16_t height, uint16_t * imageWidth, uint16_t * imageHeight) {
 	char *work = NULL;
 	int r;
 	JDEC decoder;
