@@ -64,7 +64,7 @@ TickType_t JPEGTest(TFT_t * dev, char * file, int width, int height) {
 		for(int y = 0; y < jpegHeight; y++){
 			for(int x = 0;x < jpegWidth; x++){
 				pixel_jpeg pixel = pixels[y][x];
-				uint16_t color = rgb565_conv(pixel.red, pixel.green, pixel.blue);
+				uint16_t color = rgb565(pixel.red, pixel.green, pixel.blue);
 				lcdDrawPixel(dev, x+offsetX, y+offsetY, color);
 			}
 			vTaskDelay(1);
@@ -74,7 +74,7 @@ TickType_t JPEGTest(TFT_t * dev, char * file, int width, int height) {
 		for(int y = 0; y < jpegHeight; y++){
 			for(int x = 0;x < jpegWidth; x++){
 				//pixel_jpeg pixel = pixels[y][x];
-				//colors[x] = rgb565_conv(pixel.red, pixel.green, pixel.blue);
+				//colors[x] = rgb565(pixel.red, pixel.green, pixel.blue);
 				colors[x] = pixels[y][x];
 			}
 			lcdDrawMultiPixels(dev, offsetX, y+offsetY, jpegWidth, colors);
@@ -175,7 +175,7 @@ TickType_t PNGTest(TFT_t * dev, char * file, int width, int height) {
 	for(int y = 0; y < pngHeight; y++){
 		for(int x = 0;x < pngWidth; x++){
 			pixel_png pixel = pngle->pixels[y][x];
-			uint16_t color = rgb565_conv(pixel.red, pixel.green, pixel.blue);
+			uint16_t color = rgb565(pixel.red, pixel.green, pixel.blue);
 			lcdDrawPixel(dev, x+offsetX, y+offsetY, color);
 		}
 	}
@@ -184,7 +184,7 @@ TickType_t PNGTest(TFT_t * dev, char * file, int width, int height) {
 	for(int y = 0; y < pngHeight; y++){
 		for(int x = 0;x < pngWidth; x++){
 			//pixel_png pixel = pngle->pixels[y][x];
-			//colors[x] = rgb565_conv(pixel.red, pixel.green, pixel.blue);
+			//colors[x] = rgb565(pixel.red, pixel.green, pixel.blue);
 			colors[x] = pngle->pixels[y][x];
 		}
 		lcdDrawMultiPixels(dev, offsetX, y+offsetY, pngWidth, colors);

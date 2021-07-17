@@ -52,7 +52,7 @@ typedef struct __attribute__((__packed__)) {
 } pixel_png;
 #endif
 
-//rgb565_conv format
+//rgb565 format
 typedef uint16_t pixel_png;
 
 typedef enum {

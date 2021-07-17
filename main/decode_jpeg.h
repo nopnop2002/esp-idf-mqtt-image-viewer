@@ -10,7 +10,7 @@ typedef struct __attribute__((__packed__)) {
 } pixel_jpeg;
 #endif
 
-//rgb565_conv format
+//rgb565 format
 typedef uint16_t pixel_jpeg;
 
 /**
