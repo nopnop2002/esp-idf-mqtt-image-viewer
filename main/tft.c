@@ -90,7 +90,7 @@ TickType_t JPEGTest(TFT_t * dev, char * file, int width, int height) {
 
 	endTick = xTaskGetTickCount();
 	diffTick = endTick - startTick;
-	ESP_LOGI(__FUNCTION__, "elapsed time[ms]:%d",diffTick*portTICK_RATE_MS);
+	ESP_LOGI(__FUNCTION__, "elapsed time[ms]:%d",diffTick*portTICK_PERIOD_MS);
 	return diffTick;
 }
 
@@ -195,7 +195,7 @@ TickType_t PNGTest(TFT_t * dev, char * file, int width, int height) {
 
 	endTick = xTaskGetTickCount();
 	diffTick = endTick - startTick;
-	ESP_LOGI(__FUNCTION__, "elapsed time[ms]:%d",diffTick*portTICK_RATE_MS);
+	ESP_LOGI(__FUNCTION__, "elapsed time[ms]:%d",diffTick*portTICK_PERIOD_MS);
 	return diffTick;
 }
 
