@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "decode_jpeg.h"
-#include "esp32/rom/tjpgd.h"
+//#include "esp32/rom/tjpgd.h"
+#include "rom/tjpgd.h"
 #include "esp_log.h"
 
 //Data that is passed from the decoder function to the infunc/outfunc functions.

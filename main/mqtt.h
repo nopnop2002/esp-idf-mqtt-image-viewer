@@ -1,7 +1,3 @@
-#define	PUBLISH		100
-#define	SUBSCRIBE	200
-#define	STOP		900
-
 typedef struct {
 	int sequence;
 	int total_data_len;

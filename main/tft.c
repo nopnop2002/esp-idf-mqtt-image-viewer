@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -21,7 +22,6 @@
 extern QueueHandle_t xQueueCmd;
 
 static const char *TAG = "TFT";
-
 
 TickType_t JPEGTest(TFT_t * dev, char * file, int width, int height) {
 	TickType_t startTick, endTick, diffTick;
@@ -90,11 +90,9 @@ TickType_t JPEGTest(TFT_t * dev, char * file, int width, int height) {
 
 	endTick = xTaskGetTickCount();
 	diffTick = endTick - startTick;
-	ESP_LOGI(__FUNCTION__, "elapsed time[ms]:%d",diffTick*portTICK_PERIOD_MS);
+	ESP_LOGI(__FUNCTION__, "elapsed time[ms]:%"PRIu32, diffTick*portTICK_PERIOD_MS);
 	return diffTick;
 }
-
-
 
 TickType_t PNGTest(TFT_t * dev, char * file, int width, int height) {
 	TickType_t startTick, endTick, diffTick;
@@ -195,7 +193,7 @@ TickType_t PNGTest(TFT_t * dev, char * file, int width, int height) {
 
 	endTick = xTaskGetTickCount();
 	diffTick = endTick - startTick;
-	ESP_LOGI(__FUNCTION__, "elapsed time[ms]:%d",diffTick*portTICK_PERIOD_MS);
+	ESP_LOGI(__FUNCTION__, "elapsed time[ms]:%"PRIu32, diffTick*portTICK_PERIOD_MS);
 	return diffTick;
 }
 
@@ -205,7 +203,11 @@ void tft(void *pvParameters)
 	ESP_LOGI(TAG, "Start TFT");
 	
 	TFT_t dev;
-	spi_master_init(&dev, CONFIG_MOSI_GPIO, CONFIG_SCLK_GPIO, CONFIG_CS_GPIO, CONFIG_DC_GPIO, CONFIG_RESET_GPIO, CONFIG_BL_GPIO);
+    int MISO_GPIO = -1;
+    int XPT_CS_GPIO = -1;
+    int XPT_IRQ_GPIO = -1;
+	spi_master_init(&dev, CONFIG_MOSI_GPIO, CONFIG_SCLK_GPIO, CONFIG_CS_GPIO, CONFIG_DC_GPIO,
+		CONFIG_RESET_GPIO, CONFIG_BL_GPIO, MISO_GPIO, XPT_CS_GPIO, XPT_IRQ_GPIO);
 
 #if CONFIG_ILI9225
 	uint16_t model = 0x9225;
@@ -244,10 +246,18 @@ void tft(void *pvParameters)
 		ESP_LOGI(TAG, "cmdBuf.imageType=%d", cmdBuf.imageType);
 		ESP_LOGI(TAG, "cmdBuf.imageFile=[%s]", cmdBuf.imageFile);
 		if (cmdBuf.imageType == typeJpeg) {
+#ifdef ENABLE_JPG
 			JPEGTest(&dev, cmdBuf.imageFile, CONFIG_WIDTH, CONFIG_HEIGHT);
+#else
+			ESP_LOGW(TAG, "JPEG not supported");
+#endif
 			unlink(cmdBuf.imageFile);
 		} else if (cmdBuf.imageType == typePng) {
+#ifdef ENABLE_PNG
 			PNGTest(&dev, cmdBuf.imageFile, CONFIG_WIDTH, CONFIG_HEIGHT);
+#else
+			ESP_LOGW(TAG, "PNG not supported");
+#endif
 			unlink(cmdBuf.imageFile);
 		}
 	} // end while

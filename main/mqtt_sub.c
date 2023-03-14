@@ -8,15 +8,16 @@
 */
 
 #include <stdio.h>
+#include <inttypes.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
-#include "freertos/event_groups.h"
 #include "esp_log.h"
 #include "esp_event.h"
+#include "esp_mac.h"
 #include "mqtt_client.h"
 #include "esp_vfs.h"
 
@@ -26,23 +27,39 @@
 static const char *TAG = "MQTT";
 
 QueueHandle_t xQueueSubscribe;
-EventGroupHandle_t xEventGroupHandle;
 extern QueueHandle_t xQueueCmd;
 
+#if 0
 #define MQTT_CONNECTED_BIT BIT0
+#endif
 
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
+#else
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
+#endif
 {
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+	esp_mqtt_event_handle_t event = event_data;
+#endif
+
 	static int sequence = 0;
+	MQTT_t mqttBuf;
 	// your_context_t *context = event->context;
 	switch (event->event_id) {
 		case MQTT_EVENT_CONNECTED:
 			ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
-			xEventGroupSetBits(xEventGroupHandle, MQTT_CONNECTED_BIT);
+			mqttBuf.topic_type = MQTT_EVENT_CONNECTED;
+			if (xQueueSendFromISR(xQueueSubscribe, &mqttBuf, NULL) != pdPASS) {
+				ESP_LOGE(TAG, "[MQTT_EVENT_CONNECTED] xQueueSend Fail");
+			}
 			break;
 		case MQTT_EVENT_DISCONNECTED:
 			ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
-			xEventGroupClearBits(xEventGroupHandle, MQTT_CONNECTED_BIT);
+			mqttBuf.topic_type = MQTT_EVENT_DISCONNECTED;
+			if (xQueueSendFromISR(xQueueSubscribe, &mqttBuf, NULL) != pdPASS) {
+				ESP_LOGE(TAG, "[MQTT_EVENT_DISCONNECTED] xQueueSend Fail");
+			}
 			break;
 		case MQTT_EVENT_SUBSCRIBED:
 			ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
@@ -54,7 +71,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 			ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
 			break;
 		case MQTT_EVENT_DATA:
-			ESP_LOGD(TAG, "MQTT_EVENT_DATA");
+			ESP_LOGI(TAG, "MQTT_EVENT_DATA");
 			ESP_LOGD(TAG, "TOPIC=%.*s\r", event->topic_len, event->topic);
 			//ESP_LOGI(TAG, "DATA=%.*s\r", event->data_len, event->data);
 			ESP_LOGD(TAG, "event->topic_len=%d", event->topic_len);
@@ -62,8 +79,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 			ESP_LOGD(TAG, "event->total_data_len=%d", event->total_data_len);
 			ESP_LOGD(TAG, "event->current_data_offset=%d", event->current_data_offset);
 			
-			MQTT_t mqttBuf;
-			mqttBuf.topic_type = SUBSCRIBE;
+			mqttBuf.topic_type = MQTT_EVENT_DATA;
 			if (event->topic_len != 0) sequence = 0;
 			mqttBuf.sequence = sequence;
 			sequence++;
@@ -79,17 +95,25 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 				mqttBuf.data[i] = event->data[i];
 				mqttBuf.data[i+1] = 0;
 			}
-			//xQueueSend(xQueueSubscribe, &mqttBuf, 0);
-			xQueueSend(xQueueSubscribe, &mqttBuf, portMAX_DELAY);
+			if (xQueueSendFromISR(xQueueSubscribe, &mqttBuf, NULL) != pdPASS) {
+				ESP_LOGE(TAG, "[MQTT_EVENT_DATA] xQueueSend Fail");
+				ESP_LOGE(TAG, "[MQTT_EVENT_DATA] maybe the image size is too big");
+			}
 			break;
 		case MQTT_EVENT_ERROR:
 			ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
+			mqttBuf.topic_type = MQTT_EVENT_ERROR;
+			if (xQueueSendFromISR(xQueueSubscribe, &mqttBuf, NULL) != pdPASS) {
+				ESP_LOGE(TAG, "MQTT_EVENT_ERROR] xQueueSend Fail");
+			}
 			break;
 		default:
 			ESP_LOGI(TAG, "Other event id:%d", event->event_id);
 			break;
 	}
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
 	return ESP_OK;
+#endif
 }
 
 #if 0
@@ -109,28 +133,43 @@ void mqtt_sub(void *pvParameters)
 {
 	ESP_LOGI(TAG, "Start Subscriber Broker:%s", CONFIG_BROKER_URL);
 
-	/* Create Queue */
-	//xQueueSubscribe = xQueueCreate( 20, sizeof(MQTT_t) );
-	xQueueSubscribe = xQueueCreate( 10, sizeof(MQTT_t) );
+	// Create Queue
+	//xQueueSubscribe = xQueueCreate( 10, sizeof(MQTT_t) );
+	xQueueSubscribe = xQueueCreate( 40, sizeof(MQTT_t) );
 	configASSERT( xQueueSubscribe );
 
-	/* Create Eventgroup */
-	xEventGroupHandle = xEventGroupCreate();
-	configASSERT( xEventGroupHandle );
-	xEventGroupClearBits(xEventGroupHandle, MQTT_CONNECTED_BIT);
+	// Set client id from mac
+	uint8_t mac[8];
+	ESP_ERROR_CHECK(esp_base_mac_addr_get(mac));
+	for(int i=0;i<8;i++) {
+		ESP_LOGD(TAG, "mac[%d]=%x", i, mac[i]);
+	}
+	char client_id[64];
+	sprintf(client_id, "esp32-%02x%02x%02x%02x%02x%02x", mac[0],mac[1],mac[2],mac[3],mac[4],mac[5]);
+	ESP_LOGI(TAG, "client_id=[%s]", client_id);
 
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+	esp_mqtt_client_config_t mqtt_cfg = {
+		.broker.address.uri = CONFIG_BROKER_URL,
+		.broker.address.port = 1883,
+		.credentials.client_id = client_id
+	};
+#else
 	esp_mqtt_client_config_t mqtt_cfg = {
 		.uri = CONFIG_BROKER_URL,
 		.event_handle = mqtt_event_handler,
+		.client_id = client_id
 	};
+#endif
 
 	esp_mqtt_client_handle_t mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
-	esp_mqtt_client_start(mqtt_client);
-	xEventGroupWaitBits(xEventGroupHandle, MQTT_CONNECTED_BIT, false, true, portMAX_DELAY);
-	ESP_LOGI(TAG, "Connect to MQTT Server");
 
-	esp_mqtt_client_subscribe(mqtt_client, CONFIG_MQTT_TOPIC, 0);
-	MQTT_t mqttBuf;
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+	esp_mqtt_client_register_event(mqtt_client, ESP_EVENT_ANY_ID, mqtt_event_handler, NULL);
+#endif
+
+	esp_mqtt_client_start(mqtt_client);
+
 	FILE* file = NULL;
 	char markerJPEG[] = {0xFF, 0xD8};
 	char markerPNG[] = {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
@@ -141,11 +180,17 @@ void mqtt_sub(void *pvParameters)
 	cmdBuf.command = CMD_IMAGE;
 	cmdBuf.taskHandle = xTaskGetCurrentTaskHandle();
 
+	MQTT_t mqttBuf;
 	while (1) {
 		xQueueReceive(xQueueSubscribe, &mqttBuf, portMAX_DELAY);
-		ESP_LOGD(TAG, "type=%d", mqttBuf.topic_type);
+		ESP_LOGD(TAG, "xQueueReceive type=%d", mqttBuf.topic_type);
 
-		if (mqttBuf.topic_type == SUBSCRIBE) {
+		if (mqttBuf.topic_type == MQTT_EVENT_CONNECTED) {
+			esp_mqtt_client_subscribe(mqtt_client, CONFIG_MQTT_TOPIC, 0);
+			ESP_LOGI(TAG, "Subscribe to MQTT Server");
+		} else if (mqttBuf.topic_type == MQTT_EVENT_DISCONNECTED) {
+			break;
+		} else if (mqttBuf.topic_type == MQTT_EVENT_DATA) {
 			ESP_LOGD(TAG, "TOPIC=%.*s\r", mqttBuf.topic_len, mqttBuf.topic);
 			ESP_LOGD(TAG, "DATA=%.*s\r", mqttBuf.data_len, mqttBuf.data);
 			if (mqttBuf.current_data_offset == 0) {
@@ -153,7 +198,7 @@ void mqtt_sub(void *pvParameters)
 				if (strncmp(mqttBuf.data, markerJPEG, sizeof(markerJPEG)) == 0) {
 					ESP_LOGI(TAG, "JPEG file");
 					//strcpy(fileName, "/spiffs/image.jpeg");
-					sprintf(fileName, "/spiffs/image%d.jpeg",xTaskGetTickCount());
+					sprintf(fileName, "/spiffs/image%"PRIu32".jpeg",xTaskGetTickCount());
 					//file = fopen("/spiffs/image.jpeg", "wb");
 					file = fopen(fileName, "wb");
 					if (file == NULL) {
@@ -166,7 +211,7 @@ void mqtt_sub(void *pvParameters)
 				} else if (strncmp(mqttBuf.data, markerPNG, sizeof(markerPNG)) == 0) {
 					ESP_LOGI(TAG, "PNG file");
 					//strcpy(fileName, "/spiffs/image.png");
-					sprintf(fileName, "/spiffs/image%d.png",xTaskGetTickCount());
+					sprintf(fileName, "/spiffs/image%"PRIu32".png",xTaskGetTickCount());
 					//file = fopen("/spiffs/image.png", "wb");
 					file = fopen(fileName, "wb");
 					if (file == NULL) {
@@ -177,7 +222,7 @@ void mqtt_sub(void *pvParameters)
 						fwrite(mqttBuf.data, mqttBuf.data_len, 1, file);
 					}
 				} else {
-					ESP_LOGI(TAG, "Unknown Image file type");
+					ESP_LOGW(TAG, "Unknown Image file type");
 				}
 			} else {
 				if (file == NULL) continue;
@@ -209,11 +254,10 @@ void mqtt_sub(void *pvParameters)
 				}
 
 			}
-		} else if (mqttBuf.topic_type == STOP) {
-			ESP_LOGI(TAG, "Task Delete");
-			esp_mqtt_client_stop(mqtt_client);
-			vTaskDelete(NULL);
 		}
-	}
+	} // end while
 
+	ESP_LOGI(TAG, "Task Delete");
+	esp_mqtt_client_stop(mqtt_client);
+	vTaskDelete(NULL);
 }

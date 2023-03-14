@@ -9,24 +9,30 @@ Image viewer using mqtt and SPI TFT.
 
 ![slide-0003](https://user-images.githubusercontent.com/6020549/118927202-649c9a00-b97c-11eb-8a33-f54c230c0997.jpg)
 
+# Software requirements
+esp-idf v4.4 or later.   
+This is because this version supports ESP32-C3.   
+
 # Hardware requirements
 SPI TFT.   
 Supported TFTs:   
 https://github.com/nopnop2002/esp-idf-ili9340
 
-# Installation for ESP32
+# Installation
 
 ```
 git clone https://github.com/nopnop2002/esp-idf-mqtt-image-viewer
 cd esp-idf-mqtt-image-viewer/
-idf.py set-target esp32
+idf.py set-target {esp32/esp32s3/esp32c3}
 idf.py menuconfig
 idf.py flash
 ```
 
-# Installation for ESP32-S2
+__Note for ESP32S2__   
 It don't work because the ROM is small.   
 
+__Note for ESP32S3__   
+Pull Up of the RESET pin may be required. I inserted a 10K ohm resistor between Vcc and RESET.   
 
 # Configuration   
 
@@ -56,12 +62,12 @@ Follow [here](https://github.com/nopnop2002/esp-idf-ili9340).
 ![config-tft](https://user-images.githubusercontent.com/6020549/118922908-c1e11d00-b975-11eb-89fc-e7c5a57ca88e.jpg)
 
 # How to use
-`mosquitto_pub -d -h  broker.emqx.io -t image/example -f esp32.jpeg`
+`mosquitto_pub -d -h broker.emqx.io -t image/example -f esp32.jpeg`
 
 ![M5Stack-JPEG](https://user-images.githubusercontent.com/6020549/78413968-e0426700-7654-11ea-9040-0fdfd0f2de2e.JPG)
 
 
-`mosquitto_pub -d -h  broker.emqx.io -t image/example -f esp_logo.png`
+`mosquitto_pub -d -h broker.emqx.io -t image/example -f esp_logo.png`
 
 ![M5Stack-PNG](https://user-images.githubusercontent.com/6020549/78613610-40c8e280-78a7-11ea-95b0-a89ce14dc196.JPG)
 
