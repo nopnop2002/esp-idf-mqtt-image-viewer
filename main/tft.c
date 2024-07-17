@@ -37,8 +37,8 @@ TickType_t JPEGTest(TFT_t * dev, char * file, int width, int height) {
 	if (height > 320) _height = 320;
 
 	pixel_jpeg **pixels;
-	uint16_t imageWidth;
-	uint16_t imageHeight;
+	int imageWidth;
+	int imageHeight;
 	esp_err_t err = decode_jpeg(&pixels, file, _width, _height, &imageWidth, &imageHeight);
 	if (err == ESP_OK) {
 		ESP_LOGI(__FUNCTION__, "imageWidth=%d imageHeight=%d", imageWidth, imageHeight);
@@ -246,18 +246,10 @@ void tft(void *pvParameters)
 		ESP_LOGI(TAG, "cmdBuf.imageType=%d", cmdBuf.imageType);
 		ESP_LOGI(TAG, "cmdBuf.imageFile=[%s]", cmdBuf.imageFile);
 		if (cmdBuf.imageType == typeJpeg) {
-#ifdef ENABLE_JPG
 			JPEGTest(&dev, cmdBuf.imageFile, CONFIG_WIDTH, CONFIG_HEIGHT);
-#else
-			ESP_LOGW(TAG, "JPEG not supported");
-#endif
 			unlink(cmdBuf.imageFile);
 		} else if (cmdBuf.imageType == typePng) {
-#ifdef ENABLE_PNG
 			PNGTest(&dev, cmdBuf.imageFile, CONFIG_WIDTH, CONFIG_HEIGHT);
-#else
-			ESP_LOGW(TAG, "PNG not supported");
-#endif
 			unlink(cmdBuf.imageFile);
 		}
 	} // end while
