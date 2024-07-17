@@ -33,8 +33,8 @@ The tjpgd library is not included in the ESP32-S2/ESP32-C2 ROM.
 However, you can use [this](https://components.espressif.com/components/espressif/esp_jpeg) IDF component registry.   
 JPEG files can be displayed.   
 
-__Note for ESP32-C2__   
-ESP32-C2 has less SRAM, so JPEG and PNG may not be displayed on higher resolution TFTs.   
+__Note for ESP32-S2/C2__   
+ESP32-S2/C2 has less SRAM, so JPEG and PNG may not be displayed on higher resolution TFTs.   
 ```
 E (256560) decode_jpeg: Error allocating memory for line 251
 E (260630) pngle_new: Error allocating memory for line 160
