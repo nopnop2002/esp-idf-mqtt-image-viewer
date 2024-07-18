@@ -136,7 +136,11 @@ void mqtt_sub(void *pvParameters)
 	// Create Queue
 	//xQueueSubscribe = xQueueCreate( 10, sizeof(MQTT_t) );
 	xQueueSubscribe = xQueueCreate( 40, sizeof(MQTT_t) );
-	configASSERT( xQueueSubscribe );
+	if (xQueueSubscribe == NULL) {
+		ESP_LOGE(TAG, "xQueueCreate fail");
+		vTaskDelete(NULL);
+	}
+	//configASSERT( xQueueSubscribe );
 
 	// Set client id from mac
 	uint8_t mac[8];

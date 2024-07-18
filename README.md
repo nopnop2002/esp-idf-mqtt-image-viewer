@@ -23,22 +23,13 @@ https://github.com/nopnop2002/esp-idf-ili9340
 ```
 git clone https://github.com/nopnop2002/esp-idf-mqtt-image-viewer
 cd esp-idf-mqtt-image-viewer/
-idf.py set-target {esp32/esp32s2/esp32s3/esp32c2/esp32c3/esp32c6}
+idf.py set-target {esp32/esp32s3/esp32c3/esp32c6}
 idf.py menuconfig
 idf.py flash
 ```
 
-__Note for ESP32-S2/ESP32-C2__   
-The tjpgd library is not included in the ESP32-S2/ESP32-C2 ROM.   
-However, you can use [this](https://components.espressif.com/components/espressif/esp_jpeg) IDF component registry.   
-JPEG files can be displayed.   
-
 __Note for ESP32-S2/C2__   
-ESP32-S2/C2 has less SRAM, so JPEG and PNG may not be displayed on higher resolution TFTs.   
-```
-E (256560) decode_jpeg: Error allocating memory for line 251
-E (260630) pngle_new: Error allocating memory for line 160
-```
+ESP32-S2/C2 has less SRAM and cannot operate properly.   
 
 
 # Configuration   

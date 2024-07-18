@@ -203,9 +203,9 @@ void tft(void *pvParameters)
 	ESP_LOGI(TAG, "Start TFT");
 	
 	TFT_t dev;
-    int MISO_GPIO = -1;
-    int XPT_CS_GPIO = -1;
-    int XPT_IRQ_GPIO = -1;
+	int MISO_GPIO = -1;
+	int XPT_CS_GPIO = -1;
+	int XPT_IRQ_GPIO = -1;
 	spi_master_init(&dev, CONFIG_MOSI_GPIO, CONFIG_SCLK_GPIO, CONFIG_CS_GPIO, CONFIG_DC_GPIO,
 		CONFIG_RESET_GPIO, CONFIG_BL_GPIO, MISO_GPIO, XPT_CS_GPIO, XPT_IRQ_GPIO);
 
