@@ -29,8 +29,7 @@ idf.py flash
 ```
 
 __Note for ESP32-S2/C2__   
-ESP32-S2/C2 has less SRAM and cannot operate properly.   
-
+ESP32-S2/C2 has less SRAM, so it cannot be executed.   
 
 # Configuration   
 
